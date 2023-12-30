@@ -1,11 +1,11 @@
 # Native
 import time
 import requests
-from requests.adapters import HTTPAdapter, Retry
 import re
 import base64
 # Dependencies
 import runpod
+from requests.adapters import HTTPAdapter, Retry
 from requests_toolbelt import MultipartEncoder
 
 sd_session = requests.Session()
