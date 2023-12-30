@@ -1,5 +1,5 @@
 # Base image
-FROM runpod/pytorch:3.10-2.0.0-117
+FROM runpod/pytorch:2.1.0-py3.10-cuda11.8.0-devel-ubuntu22.04
 
 # Use bash shell with pipefail option
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
