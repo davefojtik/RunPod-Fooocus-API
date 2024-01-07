@@ -70,9 +70,10 @@ const Txt2Img = {
 const UpscaleVary = {
     "input":{
         "api_name": "upscale-vary", // String (This is our own param to define which endpoint we want to use in handler.py)
+        "uov_method": "Vary (Subtle)", // String
         "prompt": "sample, (prompt:1.4)", // String
         "negative_prompt": "sample negative", // String
-        "style_selections": ['Cinematic', 'Masterpiece'], // Array of Strings
+        "style_selections": "['Cinematic', 'Masterpiece']", // Stringified Array of Strings
         "performance_selection": "Speed", // String
         "aspect_ratios_selection": "1024×1024", // String
         "image_number": "1", // String
@@ -97,7 +98,7 @@ const InpaintOutpaint = {
         "api_name": "inpaint-outpaint", // String (This is our own param to define which endpoint we want to use in handler.py)
         "prompt": "sample, (prompt:1.4)", // String
         "negative_prompt": "sample negative", // String
-        "style_selections": ['Cinematic', 'Masterpiece'], // Array of Strings
+        "style_selections": "['Cinematic', 'Masterpiece']", // Stringified Array of Strings
         "performance_selection": "Speed", // String
         "aspect_ratios_selection": "1024×1024", // String
         "image_number": "1", // String
@@ -115,7 +116,7 @@ const InpaintOutpaint = {
         "input_mask": "https://your-mask.url/123", // String of publicly accessible URL link or Url-safe Base64 encoded binary img data
         "inpaint_additional_prompt": "text", // String
         "outpaint_selections": "Top,Bottom", // String of Python Literals divided by comma without space
-        "outpaint_distance_left": "-1", // String
+        "outpaint_distance_left": "-1", // String (-1 for default value, otherwise amount of pixels)
         "outpaint_distance_right": "-1", // String
         "outpaint_distance_top": "-1", // String
         "outpaint_distance_bottom": "-1" // String
