@@ -70,18 +70,19 @@ def run_inference(params):
                 url='%s%s' % (config["baseurl"], api_path),
                 timeout=config["timeout"])
         
-    # You can send the input_image as binary encoded into url-safe base64 string or as publicly accessible url link string
-    img_content = None
-    if "input_image" in params:
-        try:
-            if not re.search(r'https?://\S+', params["input_image"]) is None:
-                img_url = params.get('input_image')
-                img_content = requests.get(img_url).content
-            else:
-                img_content = base64.urlsafe_b64decode(params['input_image'])
-        except Exception as e:
-            print("Image conversion task failed: ", e)
-            return None
+    # You can send the input_image, input_mask, and cn_images as binary encoded into url-safe base64 string or as publicly accessible url link string
+    input_imgs = {'input_image':None, 'input_mask':None, 'cn_img1':None, 'cn_img2':None, 'cn_img3':None, 'cn_img4':None,}
+    for key in input_imgs.items():
+        if key in params:
+            try:
+                if not re.search(r'https?://\S+', params[key]) is None:
+                    img_url = params.get(key)
+                    input_imgs[key] = requests.get(img_url).content
+                else:
+                    input_imgs[key] = base64.urlsafe_b64decode(params[key])
+            except Exception as e:
+                print("Image conversion task failed: ", e)
+                return None
 
     if api_verb == "POST":
         # If the request should be multipart/form-data, convert the application/json data into it.
@@ -90,7 +91,7 @@ def run_inference(params):
                 # Remove the input_image key/value from original request data (it gets confused otherwise)
                 del params['input_image']
                 # Convert
-                multipart_data = MultipartEncoder(fields={'input_image': ('image.png', img_content, 'image/png'), **params})
+                multipart_data = MultipartEncoder(fields={key: (f'{key}.png', value, 'image/png') for key, value in input_imgs.items()}, **params)
                 headers = {'Content-Type': multipart_data.content_type}
                 response = sd_session.post(
                     url='%s%s' % (config["baseurl"], api_path),
@@ -102,8 +103,9 @@ def run_inference(params):
                 return None
         # If the final request should be application/json. Send the original request data
         else:
-            if not img_content is None:
-                params["input_image"] = base64.urlsafe_b64encode(img_content).decode('utf-8')
+            for key, value in input_imgs.items():
+                if not value is None:
+                    params[key] = base64.urlsafe_b64encode(value).decode('utf-8')
             response = sd_session.post(
                 url='%s%s' % (config["baseurl"], api_path),
                 json=params, 
