@@ -2,7 +2,7 @@
 
 This is a RunPod Fooocus-API worker that expects a Fooocus-API v0.3.26 instance installed on a RunPod Network Volume.
 
-Ready-to-use Docker Image with this repo's code: https://hub.docker.com/r/3wad/runpod-fooocus-api (use `3wad/runpod-fooocus-api:0.2.4`)
+Ready-to-use Docker Image with this repo's code: https://hub.docker.com/r/3wad/runpod-fooocus-api (use `3wad/runpod-fooocus-api:0.2.41`)
 
 ## How to prepare Network Volume
 - Create RunPod network volume. 15GB is just enough for the generic Foocus with Juggernaut model. You can increase its size any time if you need additional models, loras etc. But unfortunately, it cannot be reduced back.
@@ -11,7 +11,7 @@ Ready-to-use Docker Image with this repo's code: https://hub.docker.com/r/3wad/r
 - After that you are ready to connect to the pod's console and use cp -r /app/* /workspace/ to copy everything into the persistent network volume
 - Once everything is copied successfully, you can terminate the pod. You have the network volume ready.
 - ---
-- Now you can use our premade image: `3wad/runpod-fooocus-api:0.2.4` and skip the next step OR create your custom docker image from this repo that will run on the actual serverless API. Feel free to adjust handler.py based on how you want to make your requests and it's parameters, or add additional features.
+- Now you can use our premade image: `3wad/runpod-fooocus-api:0.2.41` and skip the next step OR create your custom docker image from this repo that will run on the actual serverless API. Feel free to adjust handler.py based on how you want to make your requests and it's parameters, or add additional features.
 - Once you build it, upload it to the Docker Hub.
 - Now you create a custom Serverless Pod Template using the Docker Hub image you've just uploaded (or our premade one). Active container disk should be slightly bigger than the size of the worker docker image.
 - Create a new Serverless API Endpoint. Make sure to choose your (or ours) Docker Hub image and not the `konieshadow/fooocus-api` from step 2. In Advanced settings choose your created network volume.
