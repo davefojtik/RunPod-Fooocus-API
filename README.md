@@ -16,3 +16,6 @@ Ready-to-use Docker Image with this repo's code: https://hub.docker.com/r/3wad/r
 - Now you create a custom Serverless Pod Template using the Docker Hub image you've just uploaded (or our premade one). Active container disk should be slightly bigger than the size of the worker docker image.
 - Create a new Serverless API Endpoint. Make sure to choose your (or ours) Docker Hub image and not the `konieshadow/fooocus-api` from step 2. In Advanced settings choose your created network volume.
 - Other settings are your choice, but I personally found that using 4090/L4 GPUs + Flashboot is the most cost-effective one. In frequent use, the 4090 is able to return an image in ~8s including cold start, making it ~4x cheaper to run this on RunPod than for example using DALLE-3 API. This fact can of course vary based on datacenter locations and GPU availability.
+
+## Contributors welcomed
+Feel free to do pull requests, fixes, improvements and suggestions to the code. I can spend limited time on this as it's only a side project for our community discord bot. So more people would definitely help me maintain this.
