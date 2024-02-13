@@ -31,7 +31,7 @@ def wait_for_service(url):
             print("Service not ready yet. Retrying...")
         except Exception as err:
             print("Error: ", err)
-        time.sleep(0.5)
+        time.sleep(0.2)
 
 def run_inference(params):
     config = {
@@ -43,8 +43,8 @@ def run_inference(params):
             "txt2img-ip": ("POST", "/v2/generation/text-to-image-with-ip"),
             "upscale-vary": ("POST", "/v1/generation/image-upscale-vary"), #multipart/form-data
             "upscale-vary2": ("POST", "/v2/generation/image-upscale-vary"),
-            "inpaint-outpaint": ("POST", "/v1/generation/image-inpait-outpaint"), #multipart/form-data
-            "inpaint-outpaint2": ("POST", "/v2/generation/image-inpait-outpaint"),
+            "inpaint-outpaint": ("POST", "/v1/generation/image-inpaint-outpaint"), #multipart/form-data
+            "inpaint-outpaint2": ("POST", "/v2/generation/image-inpaint-outpaint"),
             "img2img":  ("POST", "/v1/generation/image-prompt"), #multipart/form-data
             "img2img2":  ("POST", "/v2/generation/image-prompt"),
             "queryjob": ("GET", "/v1/generation/query-job"),
@@ -60,7 +60,6 @@ def run_inference(params):
     }
     # Check if the api_name in the recieved obj is supported
     api_name = params["api_name"]
-    path = None
     if api_name in config["api"]:
         api_config = config["api"][api_name]
     else:

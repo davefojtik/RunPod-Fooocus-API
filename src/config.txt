@@ -1,0 +1,54 @@
+
+"path_checkpoints": "\\workspace\\repositories\\Fooocus\\models\\checkpoints",
+"path_loras": "\\workspace\\repositories\\Fooocus\\models\\loras",
+"path_embeddings": "\\workspace\\repositories\\Fooocus\\models\\embeddings",
+"path_vae_approx": "\\workspace\\repositories\\Fooocus\\models\\vae_approx",
+"path_upscale_models": "\\workspace\\repositories\\Fooocus\\models\\upscale_models",
+"path_inpaint": "\\workspace\\repositories\\Fooocus\\models\\inpaint",
+"path_controlnet": "\\workspace\\repositories\\Fooocus\\models\\controlnet",
+"path_clip_vision": "\\workspace\\repositories\\Fooocus\\models\\clip_vision",
+"path_fooocus_expansion": "\\workspace\\repositories\\Fooocus\\models\\prompt_expansion\\fooocus_expansion",
+"path_outputs": "\\workspace\\repositories\\Fooocus\\outputs",
+"default_model": "juggernautXL_version6Rundiffusion.safetensors",
+"default_refiner": "None",
+"default_refiner_switch": 0.5,
+"default_loras": [
+    [
+        "sd_xl_offset_example-lora_1.0.safetensors",
+        0.1
+    ],
+    [
+        "None",
+        1.0
+    ],
+    [
+        "None",
+        1.0
+    ],
+    [
+        "None",
+        1.0
+    ],
+    [
+        "None",
+        1.0
+    ]
+],
+"default_cfg_scale": 4.0,
+"default_sample_sharpness": 2.0,
+"default_sampler": "dpmpp_2m_sde_gpu",
+"default_scheduler": "karras",
+"default_styles": [
+    "Fooocus V2",
+    "Fooocus Enhance",
+    "Fooocus Sharp"
+],
+"default_prompt_negative": "",
+"default_prompt": "",
+"default_performance": "Speed",
+"default_advanced_checkbox": false,
+"default_max_image_number": 32,
+"default_image_number": 1,
+"checkpoint_downloads": {},
+"lora_downloads": {},
+"embeddings_downloads": {}
