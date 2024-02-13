@@ -1,0 +1,8 @@
+FROM alpine:latest
+RUN apk add --no-cache git curl
+
+COPY builder/clone.sh /clone.sh
+ADD src .
+
+RUN chmod +x /networksetup.sh
+CMD . /networksetup.sh

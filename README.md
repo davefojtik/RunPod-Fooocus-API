@@ -1,26 +1,22 @@
-![Static Badge](https://img.shields.io/badge/API_version-0.3.29-blue) ![Static Badge](https://img.shields.io/badge/API_coverage-100%25-vividgreen) ![Static Badge](https://img.shields.io/badge/API_tests-passed-vividgreen) ![Static Badge](https://img.shields.io/badge/Known_bugs-1-red) ![Static Badge](https://img.shields.io/badge/Fooocus_version-2.0.78-lightgrey)
+![Static Badge](https://img.shields.io/badge/API_version-0.3.30-blue) ![Static Badge](https://img.shields.io/badge/API_coverage-100%25-vividgreen) ![Static Badge](https://img.shields.io/badge/API_tests-passed-vividgreen) ![Static Badge](https://img.shields.io/badge/Known_bugs-0-vividgreen) ![Static Badge](https://img.shields.io/badge/Fooocus_version-2.1.862-lightgrey)
 
 # RunPod-Fooocus-API
 
-This is a RunPod Fooocus-API worker that expects a **Fooocus-API `v0.3.29`** instance installed on a RunPod Network Volume.  
-For ready-to-use serverless endpoint image with this repo's code use: [`3wad/runpod-fooocus-api:0.3.29`](https://hub.docker.com/r/3wad/runpod-fooocus-api/tags)
+This repository consists of two branches:
+[NetworkVolume](https://github.com/davefojtik/RunPod-Fooocus-API/tree/NetworkVolume) and [Standalone](https://github.com/davefojtik/RunPod-Fooocus-API/tree/Standalone)  
+  
+![image](https://github.com/davefojtik/RunPod-Fooocus-API/assets/66263283/88d74dd7-2dcd-44a8-af01-f1ce29bfb713)
 
-## How to prepare Network Volume
-- [**Create RunPod network volume:**](https://www.runpod.io/console/user/storage)
-  17GB is just enough for the generic Foocus with Juggernaut and all controlnet models. You can increase its size any time if you need additional models, loras etc. But unfortunately, it cannot be reduced back without creating new one.
-- [**Create a custom Pod Template:**](https://www.runpod.io/console/user/templates) and use the `konieshadow/fooocus-api:v0.3.29` image. I went with 30GB disk sizes, mount path `/workspace`, and expose `http 8888` and `tcp 22`.
-- [**Run a GPU pod:**](https://www.runpod.io/console/gpu-secure-cloud) with network volume and custom fooocus-api template you've just created. You don't need a strong GPU pod, the installation is CPU and download-intensive, but be aware that some older-gen pods might not support the required CUDA versions. Let it download and install everything. After the Juggernaut model is downloaded, use the connect button to load into the Fooocus-API docs running on the pod's 8888 port. Here you should try all the API methods you plan to use. Not only to verify they work, but also because additional up-to-date models are downloaded once you run inpaint, outpaint, upscale, vary and img2img (canny, face swap etc.) endpoints for the first time.
-- After that you are ready to connect to the pod's console and use `cp -r /app/* /workspace/` to copy everything into the persistent network volume
-- Once everything is copied successfully, you can terminate the pod. You have the network volume ready.
----
-- Now you can use our premade image: `3wad/runpod-fooocus-api:0.3.29` and skip the next step OR create your custom docker image from this repo that will run on the actual serverless API. Feel free to adjust the code to your needs.
-- *If you built your own image, upload it to the Docker Hub.*
-- [**Create a custom Serverless Pod Template:**](https://www.runpod.io/console/serverless/user/templates) using the Docker Hub image you've just uploaded (or our premade one). Active container disk should be slightly bigger than the size of that docker image. In the case of our prebuild one, it's currently about 13.7GB
-- [**Create a new Serverless API Endpoint:**](https://www.runpod.io/console/serverless) Make sure to choose your (or our) Docker Hub image and not the `konieshadow/fooocus-api` from the step 2. In Advanced settings choose your created network volume.
-- Other settings are your choice, but I personally found that using 4090/L4 GPUs + Flashboot is the most cost-effective one. In frequent use, the 4090 is able to return a txt2img in ~8s including cold start, making it **~25x** cheaper to run Fooocus on RunPod than for example using DALLE-3 API. **(01/24 prices: 0,0016usd/img vs 0,04usd/img), This fact can of course vary based on datacenter locations and GPU availability.*
+
+The **NetworkVolume** expects you to install and prepare your own `Fooocus-API v0.3.30` instance on the RunPod network volume, or to use our `3wad/runpod-fooocus-api:0.3.30-networksetup` image. This is ideal if you want to change models, loras or other contents on the fly. The downside of this solution is slower starts, especially when the endpoint is not used frequently. See [network-guide](https://github.com/davefojtik/RunPod-Fooocus-API/blob/NetworkVolume/docs/network-guide.md) for step by step instructions.
+
+The **Standalone** branch is ready-to-use docker image with all the files and models already baked and installed into it. You can still customize it to use your own contents, but they can't be changed without rebuilding and redeploying the image. This is ideal if you want the fastest, cheapest possible endpoint for long-term usage without needs for frequent changes of models or loras. See [standalone-guide](https://github.com/davefojtik/RunPod-Fooocus-API/blob/NetworkVolume/docs/standalone-guide.md) or simply use `3WaD/RunPod-Fooocus-API:v0.3.30-standalone` as the image for a quick "default" deploy on your RunPod serverless endpoint.
 
 ## How to send requests
-[request_examples.js](https://github.com/davefojtik/RunPod-Fooocus-API/blob/main/request_examples.js) contain example payloads for all endpoints on your serverless worker. But don't hesitate to ask in the [Discussions](https://github.com/davefojtik/RunPod-Fooocus-API/discussions) if you need more help.
+[request_examples.js](https://github.com/davefojtik/RunPod-Fooocus-API/blob/NetworkVolume/docs/request_examples.js) contain example payloads for all endpoints on your serverless worker, regardless of the branch. But don't hesitate to ask if you need more help.
 
 ## Contributors Welcomed
 Feel free to do pull requests, fixes, improvements and suggestions to the code. I can spend only limited time on this as it's a side project for our community discord bot. So any cooperation will help manage this repo better.
+
+## Updates
+The version of compatible Fooocus-API is always stated on the top of this readme. We're not always on the latest version automatically, as there can be breaking changes. The updates are being made only after troughrough tests on our community discord bot.
