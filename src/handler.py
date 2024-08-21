@@ -60,13 +60,18 @@ def processInput(params):
         raise Exception("Method '%s' not implemented" % api_name)
     
     # Check for inpaint preset
+    def inpaint_preset(params):
+        option = params.get("inpaint_preset")
+
+        if option == "Improve Detail": params.update({"inpaint_disable_initial_latent":False, "inpaint_engine":"None", "inpaint_strength":0.5, "inpaint_respective_field":0.0})
+        elif option in ["Modify Content", "Inpaint or Outpaint"]: params.update({"inpaint_disable_initial_latent":True, "inpaint_engine":"v2.6", "inpaint_strength":1.0, "inpaint_respective_field":0.0})
+        else: return "Preset not found. Be sure to use exactly one of: 'Improve Detail', 'Modify Content' or 'Inpaint or Outpaint'"
+        return True
+
     if "inpaint_preset" in params:
         result = inpaint_preset(params)
         if result is not True:
             raise Exception("inpaint_preset task failed: " + result)
-    def inpaint_preset(params):
-#TODO: Add inpaint_preset logic
-        return True
         
     # You can send the controlnet_image(cn_images), uov_input_image, inpaint_mask_image_upload, inpaint_input_image and enhance_input_image as PNG encoded into base64 string OR as url link string
     input_imgs = {'controlnet_image':[None,None,None,None], "uov_input_image":None, "inpaint_input_image":None, "inpaint_mask_image_upload":None, "enhance_input_image":None}
@@ -91,7 +96,12 @@ def processInput(params):
                 error_message = str(e)
                 print("Image conversion task failed: ", error_message)
                 raise Exception ({"error": error_message})
-    return params
+
+    # Ensure required params for streaming        
+        params["stream_output"] = True
+        params["require_base64"] = True
+    # Return the processed input
+    return {"api_verb":api_verb, "api_path":api_path, "params":params}
 
 async def generate(params):
     try:
