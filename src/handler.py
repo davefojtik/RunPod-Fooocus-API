@@ -5,15 +5,13 @@ import time
 import requests
 import re
 import base64
-import json
 # Dependencies
 import runpod
 from requests.adapters import HTTPAdapter, Retry
 
-baseurl = "http:://127.0.0.1:7866"
+baseurl = "http://127.0.0.1:7866"
 session = requests.Session()
 session.mount('http//', HTTPAdapter(max_retries=Retry(total=10, backoff_factor=0.1, status_forcelist=[502,503,504])))
-result = {}
 
 # ---------------------------------------------------------------------------- #
 #                               Functions                                      #
@@ -101,27 +99,70 @@ def processInput(params):
         params["stream_output"] = True
         params["require_base64"] = True
     # Return the processed input
-    return {"api_verb":api_verb, "api_path":api_path, "params":params}
+    return {"api_verb":api_verb, "api_path":api_path, "params":params, "config":config, "input_imgs":input_imgs}
 
+# TODO: The generate function is still just a sketch. Early tests printed incoming chunks from Fooocus, but the whole yielding needs to be finished and polished.
 async def generate(params):
     try:
-        {
-  #TODO: add generation and streaming logic
-        }
+        if params["api_verb"] == "GET":
+            result = session.get(url='%s%s' % (baseurl, params["api_path"]), timeout=params["config"]["timeout"])
+        if params["api_verb"] == "POST":
+            if params["api_path"] == "generate":
+                # Convert the processed binary image back to url-safe-base64
+                for key, value in params["input_imgs"].items():
+                    if value is not None:
+                        if type(value) == list:
+                            for i, value in enumerate(params["input_imgs"]['controlnet_image']):
+                                if isinstance(value, bytes):
+                                    params["params"]['controlnet_image'][i]["cn_img"] = base64.b64encode(value).decode('utf-8')
+                        elif isinstance(value, bytes):
+                            params[key] = base64.b64encode(value).decode('utf-8')
+                
+                with session.post(url='%s%s' % (params["config"]["baseurl"], params["api_path"]), json=params["params"], timeout=params["config"]["timeout"], stream=True) as res:
+                    res.raise_for_status()
+                    for chunk in res.iter_content(chunk_size=None):
+                        if chunk:
+                            yield chunk.decode('utf-8')
+            else:
+                result = session.post(url='%s%s' % (baseurl, params["api_path"]), json=params["params"], timeout=params["config"]["timeout"])
+
+        # --- Return the non-stream result ---        
+        content_type = result.headers.get('Content-Type', '')
+        if 'application/json' in content_type:
+            yield result.json()
+        else:
+            yield result.text
     except Exception as e:
-        yield {"error": ""}
+        yield {"error": str(e)}
+
+def clearOutput():
+    try:
+        print("Clearing outputs...")
+        shutil.rmtree('/workspace/outputs/files')
+        os.makedirs('/workspace/outputs/files')
+        shutil.rmtree('/workspace/repositories/Fooocus/outputs')
+        os.makedirs('/workspace/repositories/Fooocus/outputs')
+    except Exception as e:
+        error_message = str(e)
+        raise Exception(error_message)
 
 # ---------------------------------------------------------------------------- #
 #                                RunPod Handler                                #
 # ---------------------------------------------------------------------------- #
 async def handler(job):
+    ''' This is the handler function that will be called by the serverless. '''
     try:
-        job_input = processInput(job["input"])    
-        generator = generate(job_input)
+        # Check for clear outputs option (defaults to True, send "clear_output":false in your payload to keep the images stored on the network volume.)
+        # Also works on standalone but does not make much sense since the workers are stateless.
+        clear_output = job["input"].get("clear_output", True)
+        if clear_output is True:
+            clearOutput()
+
+        job_input = processInput(job["input"]) # Process the input
+        generator = generate(job_input) # Generate results
     except Exception as err:
         yield {"err": str(err)}
-        return
-    # Streaming
+    # Stream/send the generator results
     async for result in generator:
         yield result
 
