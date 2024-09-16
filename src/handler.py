@@ -3,8 +3,10 @@ import shutil
 import os
 import time
 import requests
+import httpx
 import re
 import base64
+import json
 # Dependencies
 import runpod
 from requests.adapters import HTTPAdapter, Retry
@@ -95,43 +97,62 @@ def processInput(params):
                 print("Image conversion task failed: ", error_message)
                 raise Exception ({"error": error_message})
 
-    # Ensure required params for streaming        
-        params["stream_output"] = True
-        params["require_base64"] = True
     # Return the processed input
     return {"api_verb":api_verb, "api_path":api_path, "params":params, "config":config, "input_imgs":input_imgs}
 
-# TODO: The generate function is still just a sketch. Early tests printed incoming chunks from Fooocus, but the whole yielding needs to be finished and polished.
 async def generate(params):
     try:
         if params["api_verb"] == "GET":
             result = session.get(url='%s%s' % (baseurl, params["api_path"]), timeout=params["config"]["timeout"])
         if params["api_verb"] == "POST":
-            if params["api_path"] == "generate":
-                # Convert the processed binary image back to url-safe-base64
-                for key, value in params["input_imgs"].items():
-                    if value is not None:
-                        if type(value) == list:
-                            for i, value in enumerate(params["input_imgs"]['controlnet_image']):
-                                if isinstance(value, bytes):
-                                    params["params"]['controlnet_image'][i]["cn_img"] = base64.b64encode(value).decode('utf-8')
-                        elif isinstance(value, bytes):
-                            params[key] = base64.b64encode(value).decode('utf-8')
-                
-                with session.post(url='%s%s' % (params["config"]["baseurl"], params["api_path"]), json=params["params"], timeout=params["config"]["timeout"], stream=True) as res:
-                    res.raise_for_status()
-                    for chunk in res.iter_content(chunk_size=None):
-                        if chunk:
-                            yield chunk.decode('utf-8')
+            # Convert the processed binary image back to url-safe-base64
+            for key, value in params["input_imgs"].items():
+                if value is not None:
+                    if type(value) == list:
+                        for i, value in enumerate(params["input_imgs"]['controlnet_image']):
+                            if isinstance(value, bytes):
+                                params["params"]['controlnet_image'][i]["cn_img"] = base64.b64encode(value).decode('utf-8')
+                    elif isinstance(value, bytes):
+                        params[key] = base64.b64encode(value).decode('utf-8')
+            # If generate endpoint and stream_output is True, stream the previews
+            if params["api_path"] == "/v1/engine/generate/" and params["params"]["stream_output"] is True:
+                async with httpx.AsyncClient() as client:
+                    async with client.stream("POST", url='%s%s' % (params["config"]["baseurl"], params["api_path"]), json=params["params"], timeout=params["config"]["timeout"]) as res:
+                        buffer = "" # To collect chunk data if split (protocol limit is ~37k chars in this case)
+                        async for chunk in res.aiter_bytes():
+                            decoded_chunk = chunk.decode('utf-8').strip()
+                            # Skip ping chunks (they start with ':')
+                            if decoded_chunk.startswith(":"):
+                                continue 
+                            # Remove SSE 'data: ' prefix
+                            if decoded_chunk.startswith('data: '):
+                                decoded_chunk = decoded_chunk.removeprefix('data: ')
+                            # Add the decoded chunk to the buffer
+                            buffer += decoded_chunk
+                            # If the buffer ends with "data:", it means the next chunk starts a new event
+                            if buffer.endswith("data:"):
+                                buffer = buffer[:-5].strip()  # Strip trailing "data:" and anything extra
+                            try:
+                                chunk_data = json.loads(buffer)
+                                print(chunk_data)
+                                buffer = ""  # Reset the buffer after successful parsing
+
+                                yield chunk_data
+                                # Check if job completed
+                                if chunk_data.get("message") == "Finished": return
+                            except json.JSONDecodeError:
+                                # If the buffer isn't valid JSON yet, wait for the next chunk
+                                continue                               
             else:
                 result = session.post(url='%s%s' % (baseurl, params["api_path"]), json=params["params"], timeout=params["config"]["timeout"])
 
-        # --- Return the non-stream result ---        
-        content_type = result.headers.get('Content-Type', '')
-        if 'application/json' in content_type:
-            yield result.json()
-        else:
-            yield result.text
+        # --- Return the non-stream result ---
+        if result is not None:
+            content_type = result.headers.get('Content-Type', '')
+            if 'application/json' in content_type:
+                yield result.json()
+            else:
+                yield result.text
     except Exception as e:
         yield {"error": str(e)}
 
@@ -157,13 +178,13 @@ async def handler(job):
         clear_output = job["input"].get("clear_output", True)
         if clear_output is True:
             clearOutput()
-
         job_input = processInput(job["input"]) # Process the input
-        generator = generate(job_input) # Generate results
     except Exception as err:
         yield {"err": str(err)}
+        return
+    
     # Stream/send the generator results
-    async for result in generator:
+    async for result in generate(job_input):
         yield result
 
 if __name__ == "__main__":
