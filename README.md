@@ -1,6 +1,10 @@
 ![github-header](https://github.com/qodeindustries/Quinn-AI/assets/66263283/bf8149b2-cdc3-4a59-96fb-1d272221ef70)
 ![Static Badge](https://img.shields.io/badge/API_version-0.4.1.0-blue) ![Static Badge](https://img.shields.io/badge/Fooocus_version-2.4.1-blue) ![Static Badge](https://img.shields.io/badge/API_coverage-100%25-vividgreen) ![Static Badge](https://img.shields.io/badge/API_tests-passed-vividgreen)
 
+> [!WARNING]
+> Since the main Fooocus project has reached the [end of feature updates](https://github.com/lllyasviel/Fooocus#project-status-limited-long-term-support-lts-with-bug-fixes-only), this repo won't recieve any either,
+> although I'll still try to provide support and occasional improvements and optimizations to the RunPod code. Also alternative implementations and interesting projects are in making, so stay tuned!
+
 [Fooocus-API](https://github.com/mrhan1993/Fooocus-API) RunPod serverless worker implementation
 ___
 The repository consists of two branches:
